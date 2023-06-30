@@ -322,35 +322,32 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             var ret = query<string>("*IDN?");
             if (ret.Contains("2602B") == false)
                 throw new Exception($"位于地址GPIB{_gpibAdr}的设备非KEITHLEY 2602B。");
-
-            // reset channel A and B
-            sendCommand("smua.reset()");
-            sendCommand("smub.reset()");
-
+            
             #region Settings of Channel A
-
+            
+            sendCommand("smua.reset()");
             // set source mode to DCAMPS
-            sendCommand("smub.source.func=smua.OUTPUT_DCVOLTS");
+            sendCommand("smua.source.func=smua.OUTPUT_DCVOLTS");
             // set measurement mode to DCVOLTS
-            sendCommand("display.smub.measure.func=display.MEASURE_DCAMPS");
+            sendCommand("display.smua.measure.func=display.MEASURE_DCAMPS");
             // set output voltage limit
-            sendCommand($"smub.source.limitv=1.5");
+            sendCommand($"smua.source.limitv=1.5");
             // set output current limit
-            sendCommand($"smub.source.limiti=0.1");
+            sendCommand($"smua.source.limiti=0.1");
             // set default output current
-            sendCommand($"smub.source.levelv=0");
+            sendCommand($"smua.source.levelv=0");
             // set range to AUTO
-            sendCommand($"smub.source.autorangei=1");
-            sendCommand($"smub.source.autorangev=1");
-            sendCommand($"smub.measure.autorangei=1");
-            sendCommand($"smub.measure.autorangev=1");
+            sendCommand($"smua.source.autorangei=1");
+            sendCommand($"smua.source.autorangev=1");
+            sendCommand($"smua.measure.autorangei=1");
+            sendCommand($"smua.measure.autorangev=1");
 
             #endregion
 
             #region Settings of Channel B
-
+            sendCommand("smub.reset()");
             // set source mode to DCAMPS
-            sendCommand("smub.source.func=smua.OUTPUT_DCVOLTS");
+            sendCommand("smub.source.func=smub.OUTPUT_DCVOLTS");
             // set measurement mode to DCVOLTS
             sendCommand("display.smub.measure.func=display.MEASURE_DCAMPS");
             // set output voltage limit
