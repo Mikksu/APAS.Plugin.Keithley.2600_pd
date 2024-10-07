@@ -96,6 +96,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <None Include="2600_init_2_pds.tsp">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Content Include="Dependencies\NationalInstruments.Common.dll" />
     <Content Include="Dependencies\NationalInstruments.NI4882.dll" />
     <Resource Include="Resources\keithley_logo.png" />

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Configuration;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -56,7 +57,6 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             _config = GetAppConfig();
 
             LoadConfigItem(_config, "ReadIntervalMillisec", out _pollingIntervalMs, 200);
-
             LoadConfigItem(_config, CFG_NAME_GPIB_ADR, out _gpibAdr, 26);
 
             #endregion
@@ -145,16 +145,16 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
                 {
                     if (m.Groups[1].Value == "A")
                     {
-                        sendCommand("smua.source.output=smua.OUTPUT_ON");
+                        SendCommand("smua.source.output=1");
                     }
                     else if (m.Groups[1].Value == "B")
                     {
-                        sendCommand("smub.source.output=smua.OUTPUT_ON");
+                        SendCommand("smub.source.output=1");
                     }
                     else if (m.Groups[1].Value == "ALL")
                     {
-                        sendCommand("smua.source.output=smua.OUTPUT_ON");
-                        sendCommand("smub.source.output=smua.OUTPUT_ON");
+                        SendCommand("smua.source.output=1");
+                        SendCommand("smub.source.output=1");
                     }
                     else
                         goto __param_err;
@@ -171,16 +171,16 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
                 {
                     if (m.Groups[1].Value == "A")
                     {
-                        sendCommand("smua.source.output=smua.OUTPUT_OFF");
+                        SendCommand("smua.source.output=0");
                     }
                     else if (m.Groups[1].Value == "B")
                     {
-                        sendCommand("smub.source.output=smua.OUTPUT_OFF");
+                        SendCommand("smub.source.output=0");
                     }
                     else if (m.Groups[1].Value == "ALL")
                     {
-                        sendCommand("smua.source.output=smua.OUTPUT_OFF");
-                        sendCommand("smub.source.output=smua.OUTPUT_OFF");
+                        SendCommand("smua.source.output=0");
+                        SendCommand("smub.source.output=0");
                     }
                     else
                         goto __param_err;
@@ -219,7 +219,7 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             if (channel >= 0 && channel < MaxChannel)
             {
                 var strCh = channel == 0 ? "smua" : "smub";
-                var curr = query<double>($"print({strCh}.measure.i())");
+                var curr = Query<double>($"print({strCh}.measure.i())");
                 curr *= 1000000; // convert A to uA
                 return curr;
             }
@@ -231,8 +231,8 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
         {
             try
             {
-                var iA = query<double>("print(smua.measure.i())");
-                var iB = query<double>("print(smub.measure.i())");
+                var iA = Query<double>("print(smua.measure.i())");
+                var iB = Query<double>("print(smub.measure.i())");
                 iA *= 1000000; // convert iPD from A to uA
                 iB *= 1000000; // convert iPD from A to uA
                 _rtValuesUpdatedReporter.Report((iA, iB));
@@ -319,12 +319,16 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
                 _gpib = new Device(0, new Address((byte)_gpibAdr));
             }
 
-            var ret = query<string>("*IDN?");
+            var ret = Query<string>("*IDN?");
             if (ret.Contains("2602B") == false)
                 throw new Exception($"位于地址GPIB{_gpibAdr}的设备非KEITHLEY 2602B。");
-            
+
+            var config = GetAppConfig();
+            LoadConfigItem(config, "InitTspFile", out var initTspFileName, "");
+            RunTspFile(initTspFileName);
+            /*
             #region Settings of Channel A
-            
+
             sendCommand("smua.reset()");
             // set source mode to DCAMPS
             sendCommand("smua.source.func=smua.OUTPUT_DCVOLTS");
@@ -361,13 +365,49 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             sendCommand($"smub.source.autorangev=1");
             sendCommand($"smub.measure.autorangei=1");
             sendCommand($"smub.measure.autorangev=1");
-
             #endregion
+           */
 
         }
 
+        private void RunTspFile(string filename)
+        {
+            var config = GetAppConfig();
+            var fullName = Path.Combine(Path.GetDirectoryName(config.FilePath) ?? string.Empty, filename);
+            
+            if(!File.Exists(fullName))
+                throw new FileNotFoundException($"无法找到脚本文件{fullName}");
 
-        private void sendCommand(string cmd)
+            using (var reader = new StreamReader(fullName))
+            {
+                while (!reader.EndOfStream)
+                {
+                    var line = reader.ReadLine();
+                    
+                    //空行
+                    if(string.IsNullOrEmpty(line))
+                        continue;
+                    
+                    // 注释行
+                    if(line.StartsWith("#"))
+                        continue;
+
+                    var command = line;
+                    
+                    // 移除行尾可能存在的注释
+                    if(line.Contains("#"))
+                        command = line.Substring(0, line.IndexOf('#'));
+                    SendCommand(command);
+                }
+            }
+            
+            // 等待命令执行完成
+            SendCommand("opc()");
+            SendCommand("waitcomplete()");
+            Query<string>("print(\"1\")");
+        }
+        
+        private void SendCommand(string cmd)
         {
             lock (_locker)
             {
@@ -384,7 +424,7 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             }
         }
 
-        private T query<T>(string cmd)
+        private T Query<T>(string cmd)
         {
             lock (_locker)
             {
