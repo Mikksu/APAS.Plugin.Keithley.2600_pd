@@ -25,6 +25,7 @@
     <WarningLevel>4</WarningLevel>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32bit>false</Prefer32bit>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,6 +36,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32bit>false</Prefer32bit>
     <PlatformTarget>x86</PlatformTarget>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="APAS.CoreLib, Version=1.1.0.7, Culture=neutral, processorArchitecture=MSIL">
@@ -67,12 +69,19 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Converters\MeasureValueDisplayFormatConverter.cs" />
     <Compile Include="Converters\ReverseBoolConverter.cs" />
     <Compile Include="Extensions\GenericTypeConverter.cs" />
-    <Compile Include="Keithley2600_PD.cs" />
+    <Compile Include="Global.cs" />
+    <Compile Include="Keithley2600.cs" />
+    <Compile Include="Models\MonitorReporter.cs" />
+    <Compile Include="Models\SingleChannelViewModel.cs" />
     <Compile Include="RelayCommand.cs" />
-    <Compile Include="Views\PluginDemoView.xaml.cs">
-      <DependentUpon>PluginDemoView.xaml</DependentUpon>
+    <Compile Include="Views\SingleChannelControl.xaml.cs">
+      <DependentUpon>SingleChannelControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Keithley2600View.xaml.cs">
+      <DependentUpon>Keithley2600View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\BlinkingIndicator.xaml.cs">
       <DependentUpon>BlinkingIndicator.xaml</DependentUpon>
@@ -90,7 +99,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Views\PluginDemoView.xaml">
+    <Page Include="Views\SingleChannelControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\Keithley2600View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -123,5 +136,6 @@
       <Version>2.0.20525</Version>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

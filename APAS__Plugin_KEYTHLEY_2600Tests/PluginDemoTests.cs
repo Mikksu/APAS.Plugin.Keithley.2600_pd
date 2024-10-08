@@ -10,7 +10,7 @@ namespace APAS__Plugin_KEYTHLEY_2600_PDTests
         [TestMethod()]
         public void InitTest()
         {
-            var plugin = new Keithley2600_PD(null, "Keithley 2600");
+            var plugin = new Keithley2600(null, "Keithley 2600");
 
             var win = new Window
             {

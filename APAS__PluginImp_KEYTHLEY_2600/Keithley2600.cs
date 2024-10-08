@@ -2,21 +2,24 @@
 using System.Configuration;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Remoting.Channels;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using APAS.Plugin.KEYTHLEY._2600_PD.Extensions;
+using APAS.Plugin.KEYTHLEY._2600_PD.Models;
 using APAS.Plugin.KEYTHLEY._2600_PD.Views;
 using APAS.Plugin.Sdk.Base;
 using APAS.ServiceContract.Wcf;
 using NationalInstruments.NI4882;
+using Reporter = (APAS.Plugin.KEYTHLEY._2600_PD.Models.MonitorReporter a, APAS.Plugin.KEYTHLEY._2600_PD.Models.MonitorReporter b);
 
 namespace APAS.Plugin.KEYTHLEY._2600_PD
 {
     /// <inheritdoc />
-    public class Keithley2600_PD : PluginMultiChannelMeasurableEquipment
+    public class Keithley2600 : PluginMultiChannelMeasurableEquipment
     {
         #region Variables
 
@@ -41,7 +44,7 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
         private CancellationToken _ct;
         private bool _isInit;
         private readonly Configuration _config;
-        private readonly IProgress<(double vf, double pd)> _rtValuesUpdatedReporter;
+        private readonly IProgress<Reporter> _rtValuesUpdatedReporter;
         private readonly int _gpibAdr;
         private double _pdCurrentA, _pdCurrentB;
 
@@ -49,8 +52,9 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
 
         #region Constructors
 
-        public Keithley2600_PD(ISystemService apasService, string caption) 
-            : base(Assembly.GetExecutingAssembly(), apasService, caption, 2, new []{"ChA", "ChB"})
+        public Keithley2600(ISystemService apasService, string caption) 
+            : base(Assembly.GetExecutingAssembly(), apasService, caption, 4, 
+                new []{"MeasV_A", "MeasI_A", "MeasV_B", "MeasI_B" })
         {
             #region Configuration Reading
 
@@ -61,7 +65,10 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
 
             #endregion
 
-            UserView = new PluginDemoView
+            ChannelA = new SingleChannelControl();
+            ChannelB = new SingleChannelControl();
+
+            UserView = new Keithley2600View()
             {
                 DataContext = this
             };
@@ -70,10 +77,9 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
 
             //! the progress MUST BE defined in the ctor since
             //! we operate the UI elements in the OnCommOneShot event.
-            _rtValuesUpdatedReporter = new Progress<(double pdCurrA, double pdCurrB)>(values =>
+            _rtValuesUpdatedReporter = new Progress<(MonitorReporter a, MonitorReporter b)>(values =>
             {
-                PdCurrentA = values.pdCurrA;
-                PdCurrentB = values.pdCurrB;
+                
             });
         }
 
@@ -105,18 +111,10 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             get => _isInit;
             protected set => SetProperty(ref _isInit, value);
         }
-        
-        public double PdCurrentA
-        {
-            get => _pdCurrentA;
-            private set => SetProperty(ref _pdCurrentA, value);
-        }
 
-        public double PdCurrentB
-        {
-            get => _pdCurrentB;
-            private set => SetProperty(ref _pdCurrentB, value);
-        }
+        public SingleChannelControl ChannelA { get; }
+
+        public SingleChannelControl ChannelB { get; }
 
         #endregion
 
@@ -227,22 +225,37 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             throw new ArgumentOutOfRangeException(nameof(channel));
         }
 
+        private MonitorReporter GetReporter(string channel)
+        {
+            var smu = $"smu{channel}";
+            var reporter = new MonitorReporter();
+            var func = Query<string>($"print({smu}.source.func)");
+            reporter.Mode = func.Contains("0") ? SourceModeEnum.ASource : SourceModeEnum.VSource;
+            reporter.MeasureA = Query<double>($"print({smu}.measure.i())");
+            reporter.MeasureV = Query<double>($"print({smu}.measure.v())");
+            reporter.SourceA = Query<double>($"print({smu}.source.leveli())");
+            reporter.SourceV = Query<double>($"print({smu}.source.levelv())");
+            return reporter;
+
+        }
+
         public override object[] FetchAll()
         {
             try
             {
-                var iA = Query<double>("print(smua.measure.i())");
-                var iB = Query<double>("print(smub.measure.i())");
-                iA *= 1000000; // convert iPD from A to uA
-                iB *= 1000000; // convert iPD from A to uA
-                _rtValuesUpdatedReporter.Report((iA, iB));
+
+                var reporterA = GetReporter("a");
+                var reporterB = GetReporter("b");
+            
+                _rtValuesUpdatedReporter.Report((reporterA, reporterB));
 
                 Application.Current?.Dispatcher.Invoke(() =>
                 {
                     OnCommShot?.Invoke(this, EventArgs.Empty);
                 });
 
-                return new object[] { iA, iB };
+                // 多通道设备，通道0~3对应"MeasV_A", "MeasI_A"，"MeasV_B", "MeasI_B"
+                return [reporterA.MeasureV, reporterA.MeasureA, reporterB.MeasureV, reporterB.MeasureA];
 
             }
             catch (Exception ex)
@@ -282,7 +295,7 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
                 IsInitialized = false;
                 IsEnabled = false;
 
-                init2600();
+                Init2600();
 
                 IsInitialized = true;
                 IsEnabled = true;
@@ -312,7 +325,7 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
 
         #region Private Methods
 
-        private void init2600()
+        private void Init2600()
         {
             lock (_locker)
             {
@@ -326,48 +339,6 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             var config = GetAppConfig();
             LoadConfigItem(config, "InitTspFile", out var initTspFileName, "");
             RunTspFile(initTspFileName);
-            /*
-            #region Settings of Channel A
-
-            sendCommand("smua.reset()");
-            // set source mode to DCAMPS
-            sendCommand("smua.source.func=smua.OUTPUT_DCVOLTS");
-            // set measurement mode to DCVOLTS
-            sendCommand("display.smua.measure.func=display.MEASURE_DCAMPS");
-            // set output voltage limit
-            sendCommand($"smua.source.limitv=1.5");
-            // set output current limit
-            sendCommand($"smua.source.limiti=0.1");
-            // set default output current
-            sendCommand($"smua.source.levelv=0");
-            // set range to AUTO
-            sendCommand($"smua.source.autorangei=1");
-            sendCommand($"smua.source.autorangev=1");
-            sendCommand($"smua.measure.autorangei=1");
-            sendCommand($"smua.measure.autorangev=1");
-
-            #endregion
-
-            #region Settings of Channel B
-            sendCommand("smub.reset()");
-            // set source mode to DCAMPS
-            sendCommand("smub.source.func=smub.OUTPUT_DCVOLTS");
-            // set measurement mode to DCVOLTS
-            sendCommand("display.smub.measure.func=display.MEASURE_DCAMPS");
-            // set output voltage limit
-            sendCommand($"smub.source.limitv=1.5");
-            // set output current limit
-            sendCommand($"smub.source.limiti=0.1");
-            // set default output current
-            sendCommand($"smub.source.levelv=0");
-            // set range to AUTO
-            sendCommand($"smub.source.autorangei=1");
-            sendCommand($"smub.source.autorangev=1");
-            sendCommand($"smub.measure.autorangei=1");
-            sendCommand($"smub.measure.autorangev=1");
-            #endregion
-           */
-
         }
 
         private void RunTspFile(string filename)
@@ -435,7 +406,7 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
         }
 
 
-        private void _startBackgroundTask(IProgress<(double vf, double pd)> progress = null)
+        private void _startBackgroundTask(IProgress<Reporter> progress = null)
         {
             if (_bgTask == null || _bgTask.IsCompleted)
             {

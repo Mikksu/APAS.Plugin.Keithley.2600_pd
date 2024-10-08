@@ -1,0 +1,193 @@
+﻿<UserControl x:Class="APAS.Plugin.KEYTHLEY._2600_PD.Views.SingleChannelControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:local="clr-namespace:APAS.Plugin.KEYTHLEY._2600_PD"
+             xmlns:models="clr-namespace:APAS.Plugin.KEYTHLEY._2600_PD.Models"
+             xmlns:converters="clr-namespace:APAS.Plugin.KEYTHLEY._2600_PD.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300"
+             d:Background="White"
+             d:DataContext="{d:DesignInstance Type=models:SingleChannelViewModel, IsDesignTimeCreatable=False}">
+    <UserControl.Resources>
+
+        <converters:MeasureValueDisplayFormatConverter x:Key="ValueDisplayFormatConverter"/>
+
+        <ObjectDataProvider x:Key="VoltUnitEnum" MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:VoltUnitEnum"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="CurrUnitEnum" MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:CurrentUnitEnum"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+        <ObjectDataProvider x:Key="SourceModeEnum" MethodName="GetValues"
+                            ObjectType="{x:Type sys:Enum}">
+            <ObjectDataProvider.MethodParameters>
+                <x:Type TypeName="local:SourceModeEnum"/>
+            </ObjectDataProvider.MethodParameters>
+        </ObjectDataProvider>
+
+        <Style x:Key="CaptionTextStyle" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Margin" Value="0 0 10 0"/>
+        </Style>
+
+        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style x:Key="ValueDisplayStyle" TargetType="TextBox" 
+               BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="Margin" Value="5,3"/>
+        </Style>
+
+        <Style x:Key="ValueSetStyle" TargetType="TextBox" 
+               BasedOn="{StaticResource ValueDisplayStyle}">
+            <Setter Property="IsReadOnly" Value="False"/>
+        </Style>
+
+        <Style x:Key="UnitSelectionStyle" TargetType="ComboBox" 
+               BasedOn="{StaticResource {x:Type ComboBox}}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Margin" Value="5,3"/>
+        </Style>
+
+        <Style x:Key="SourceModeSelectionStyle" TargetType="ComboBox" 
+               BasedOn="{StaticResource UnitSelectionStyle}">
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <GroupBox Header="测量">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="70"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="电压"
+                       Style="{StaticResource CaptionTextStyle}"/>
+                <TextBox Grid.Row="1" Grid.Column="1"
+                     Style="{StaticResource ValueDisplayStyle}">
+                    <TextBox.Text>
+                        <MultiBinding Converter="{StaticResource ValueDisplayFormatConverter}"
+                                      Mode="OneWay">
+                            <Binding Path="MeasuredV"/>
+                            <Binding Path="VoltUnitSelected"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
+                <ComboBox Grid.Row="1" Grid.Column="2" 
+                      ItemsSource="{Binding Source={StaticResource VoltUnitEnum}}"
+                      SelectedItem="{Binding VoltUnitSelected}"
+                      Style="{StaticResource UnitSelectionStyle}"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="电流"
+                       Style="{StaticResource CaptionTextStyle}"/>
+                <TextBox Grid.Row="2" Grid.Column="1" 
+                     Style="{StaticResource ValueDisplayStyle}">
+                    <TextBox.Text>
+                        <MultiBinding Converter="{StaticResource ValueDisplayFormatConverter}"
+                                      Mode="OneWay">
+                            <Binding Path="MeasuredA"/>
+                            <Binding Path="CurrentUnitSelected"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
+                <ComboBox Grid.Row="2" Grid.Column="2" 
+                      ItemsSource="{Binding Source={StaticResource CurrUnitEnum}}"
+                      SelectedItem="{Binding CurrentUnitSelected}"
+                      Style="{StaticResource UnitSelectionStyle}"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox Grid.Row="1" Header="设置">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="70"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="模式"
+                           Style="{StaticResource CaptionTextStyle}"/>
+                <ComboBox Grid.Row="0" Grid.Column="1"
+                          ItemsSource="{Binding Source={StaticResource SourceModeEnum}}"
+                          Style="{StaticResource SourceModeSelectionStyle}"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="电压"
+                           Style="{StaticResource CaptionTextStyle}"/>
+                <TextBox Grid.Row="1" Grid.Column="1" 
+                         Style="{StaticResource ValueSetStyle}">
+                    <TextBox.Text>
+                        <MultiBinding Converter="{StaticResource ValueDisplayFormatConverter}"
+                                      Mode="OneWay">
+                            <Binding Path="SourceVLevel"/>
+                            <Binding Path="VoltUnitSelected"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
+
+                
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="电流"
+                           Style="{StaticResource CaptionTextStyle}"/>
+                <TextBox Grid.Row="2" Grid.Column="1" 
+                         Style="{StaticResource ValueSetStyle}">
+                    <TextBox.Text>
+                        <MultiBinding Converter="{StaticResource ValueDisplayFormatConverter}"
+                                      Mode="OneWay">
+                            <Binding Path="SourceALevel"/>
+                            <Binding Path="CurrentUnitSelected"/>
+                        </MultiBinding>
+                    </TextBox.Text>
+                </TextBox>
+            </Grid>
+
+        </GroupBox>
+
+        <Grid Grid.Row="2" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="ON" 
+                    Command="{Binding TurnOnCommand}"/>
+            <Button Grid.Column="1" Content="OFF"
+                    Command="{Binding TurnOffCommand}"/>
+        </Grid>
+    </Grid>
+</UserControl>
