@@ -94,20 +94,6 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
 
         public override string Description => "吉时立2600系列SMU控制插件";
 
-        // public override string Usage =>
-        //     "普源DP800系列直流电源控制程序。\n" +
-        //     "Fetch(0)：CH1实时电压（V）。\n" +
-        //     "Fetch(1)：CH1实时电流（A）。\n" +
-        //     "Fetch(2)：CH2实时电压（V）。\n" +
-        //     "Fetch(3)：CH2实时电流（A）。\n" +
-        //     "Fetch(4)：CH3实时电压（V）。\n" +
-        //     "Fetch(5)：CH3实时电流（A）。\n" +
-        //     "支持的命令: \n" +
-        //     "ON [1|2|3|ALL]：打开指定通道或全部电源输出；\n" +
-        //     "OFF [1|2|3|ALL]：关闭指定通道或所有通道电源输出；\n" +
-        //     "VLEV [1|2|3],value：设置指定通道的输出电压，单位V；\n" +
-        //     "OVP [1|2|3],value：设置指定通道的保护电压，单位V；\n" +
-        //     "OCP [1|2|3],value：设置指定通道的保护电流，单位V；";
 
         public override bool IsInitialized
         {
@@ -144,15 +130,15 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
                 var m = Regex.Match(param, PATTEN_CONTROL_PARAM_ON);
                 if (m.Success)
                 {
-                    if (m.Groups[1].Value == "A")
+                    if (m.Groups[1].Value == "A") // ON A
                     {
                         SendCommand("smua.source.output=1");
                     }
-                    else if (m.Groups[1].Value == "B")
+                    else if (m.Groups[1].Value == "B") // ON B
                     {
                         SendCommand("smub.source.output=1");
                     }
-                    else if (m.Groups[1].Value == "ALL")
+                    else if (m.Groups[1].Value == "ALL") // ON ALL
                     {
                         SendCommand("smua.source.output=1");
                         SendCommand("smub.source.output=1");
@@ -170,15 +156,15 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
                 var m = Regex.Match(param, PATTEN_CONTROL_PARAM_OFF);
                 if (m.Success)
                 {
-                    if (m.Groups[1].Value == "A")
+                    if (m.Groups[1].Value == "A") // OFF A
                     {
                         SendCommand("smua.source.output=0");
                     }
-                    else if (m.Groups[1].Value == "B")
+                    else if (m.Groups[1].Value == "B") // OFF B
                     {
                         SendCommand("smub.source.output=0");
                     }
-                    else if (m.Groups[1].Value == "ALL")
+                    else if (m.Groups[1].Value == "ALL") // OFF ALL
                     {
                         SendCommand("smua.source.output=0");
                         SendCommand("smub.source.output=0");
