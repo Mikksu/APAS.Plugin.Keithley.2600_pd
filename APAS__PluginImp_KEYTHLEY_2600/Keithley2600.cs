@@ -65,8 +65,8 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
 
             #endregion
 
-            ChannelA = new SingleChannelControl();
-            ChannelB = new SingleChannelControl();
+            ChannelA = new SingleChannelViewModel();
+            ChannelB = new SingleChannelViewModel();
 
             UserView = new Keithley2600View()
             {
@@ -77,9 +77,12 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
 
             //! the progress MUST BE defined in the ctor since
             //! we operate the UI elements in the OnCommOneShot event.
-            _rtValuesUpdatedReporter = new Progress<(MonitorReporter a, MonitorReporter b)>(values =>
+            _rtValuesUpdatedReporter = new Progress<Reporter>(reporter =>
             {
-                
+                ChannelA.MeasuredA = reporter.a.MeasureA;
+                ChannelA.MeasuredV = reporter.a.MeasureV;
+                ChannelB.MeasuredA = reporter.b.MeasureA;
+                ChannelB.MeasuredV = reporter.b.MeasureV;
             });
         }
 
@@ -112,9 +115,9 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             protected set => SetProperty(ref _isInit, value);
         }
 
-        public SingleChannelControl ChannelA { get; }
+        public SingleChannelViewModel ChannelA { get; }
 
-        public SingleChannelControl ChannelB { get; }
+        public SingleChannelViewModel ChannelB { get; }
 
         #endregion
 
@@ -214,15 +217,33 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
 
         public override object Fetch(int channel)
         {
-            if (channel >= 0 && channel < MaxChannel)
+            // 通道0~3分别代表"MeasV_A", "MeasI_A", "MeasV_B", "MeasI_B"
+
+            var ret = 0.0d;
+
+            switch (channel)
             {
-                var strCh = channel == 0 ? "smua" : "smub";
-                var curr = Query<double>($"print({strCh}.measure.i())");
-                curr *= 1000000; // convert A to uA
-                return curr;
+                case 0:
+                    ret = Query<double>($"print(smua.measure.i())");
+                    break;
+
+                case 1:
+                    ret = Query<double>($"print(smua.measure.v())");
+                    break;
+
+                case 2:
+                    ret = Query<double>($"print(smub.measure.i())");
+                    break;
+
+                case 3:
+                    ret = Query<double>($"print(smub.measure.v())");
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(channel));
             }
 
-            throw new ArgumentOutOfRangeException(nameof(channel));
+            return ret;
         }
 
         private MonitorReporter GetReporter(string channel)
@@ -231,8 +252,14 @@ namespace APAS.Plugin.KEYTHLEY._2600_PD
             var reporter = new MonitorReporter();
             var func = Query<string>($"print({smu}.source.func)");
             reporter.Mode = func.Contains("0") ? SourceModeEnum.ASource : SourceModeEnum.VSource;
-            reporter.MeasureA = Query<double>($"print({smu}.measure.i())");
-            reporter.MeasureV = Query<double>($"print({smu}.measure.v())");
+            var ret = Query<string>($"print({smu}.measure.iv())");
+            var iv = ret.Split(',');
+            if (double.TryParse(iv[0], out var curr) && double.TryParse(iv[1], out var volt))
+            {
+                reporter.MeasureA = curr;
+                reporter.MeasureV = volt;
+            }
+
             reporter.SourceA = Query<double>($"print({smu}.source.leveli())");
             reporter.SourceV = Query<double>($"print({smu}.source.levelv())");
             return reporter;
