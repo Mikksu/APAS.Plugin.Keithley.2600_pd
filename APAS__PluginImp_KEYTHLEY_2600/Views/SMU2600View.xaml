@@ -12,7 +12,7 @@
              d:DataContext="{d:DesignInstance Type=smu2600:Keithley2600, IsDesignTimeCreatable=False}">
 
     <StackPanel >
-        <Border Height="30" Background="#FFAE0000" Margin="0,0,0,10">
+        <Border Height="30" Background="#FFAE0000">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -31,16 +31,18 @@
                     Command="{Binding ReConnCommand}"/>
             </Grid>
         </Border>
-        <Grid>
+        <Grid Margin="5">
           <Grid.ColumnDefinitions>
               <ColumnDefinition/>
               <ColumnDefinition/>
           </Grid.ColumnDefinitions>
             <views:SingleChannelControl 
-                DataContext="{Binding ChannelA}"/>
+                DataContext="{Binding ChannelA}" 
+                Margin="0,0,1,0"/>
             <views:SingleChannelControl
                 Grid.Column="1" 
-                DataContext="{Binding ChannelB}"/>
+                DataContext="{Binding ChannelB}" 
+                Margin="1,0,0,0"/>
         </Grid>
     </StackPanel>
 </UserControl>

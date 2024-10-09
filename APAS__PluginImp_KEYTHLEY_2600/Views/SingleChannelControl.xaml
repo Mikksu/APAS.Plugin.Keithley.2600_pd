@@ -91,9 +91,9 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="60"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="电压"
@@ -137,8 +137,7 @@
             ConverterParameter=Border}"
                   Background="{Binding IsON, 
             Converter={StaticResource SourceOutputToGroupBoxColor},
-            ConverterParameter=Background}"
-                  >
+            ConverterParameter=Background}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -148,14 +147,14 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50"/>
+                    <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="60"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="模式"
                            Style="{StaticResource CaptionTextStyle}"/>
-                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <RadioButton 
                         Content="I-Source" 
                         Style="{StaticResource SourceModeSelectionStyle}"
@@ -185,7 +184,7 @@
 
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="输出"
                            Style="{StaticResource CaptionTextStyle}"/>
-                <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <RadioButton 
                         Content="关闭" 
                         Style="{StaticResource SourceModeSelectionStyle}"

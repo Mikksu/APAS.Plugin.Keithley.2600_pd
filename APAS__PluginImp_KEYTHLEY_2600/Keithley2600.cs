@@ -63,14 +63,56 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
 
             ChannelA = new SingleChannelViewModel
             {
-                TurnOnCommand = new RelayCommand(_=>Output("A", true)),
-                TurnOffCommand = new RelayCommand(_ => Output("A", false)),
+                TurnOnCommand = new RelayCommand(_=>
+                {
+                    try
+                    {
+                        Output("A", true);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    
+                }),
+                TurnOffCommand = new RelayCommand(_ =>
+                {
+                    
+                    try
+                    {
+                        Output("A", false);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }),
             };
 
             ChannelB = new SingleChannelViewModel
             {
-                TurnOnCommand = new RelayCommand(_ => Output("B", true)),
-                TurnOffCommand = new RelayCommand(_ => Output("B", false)),
+                TurnOnCommand = new RelayCommand(_ =>
+                {
+                    try
+                    {
+                        Output("B", true);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }),
+                TurnOffCommand = new RelayCommand(_ =>
+                {
+                    try
+                    {
+                        Output("B", false);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message, "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }),
             };
 
             UserView = new SMU2600View()
