@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Input;
 
-namespace APAS.Plugin.KEYTHLEY._2600_PD
+namespace APAS.Plugin.KEYTHLEY.SMU2600
 {
     public class RelayCommand : ICommand
     {

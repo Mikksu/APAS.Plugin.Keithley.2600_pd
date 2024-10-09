@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace APAS.Plugin.KEYTHLEY._2600_PD.Extensions
+namespace APAS.Plugin.KEYTHLEY.SMU2600.Extensions
 {
     public static class GenericTypeConverter
     {

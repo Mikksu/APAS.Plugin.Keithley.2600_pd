@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Windows.Data;
 
-namespace APAS.Plugin.KEYTHLEY._2600_PD.Converters
+namespace APAS.Plugin.KEYTHLEY.SMU2600.Converters
 {
     public class ReverseBoolConverter : IValueConverter
     {

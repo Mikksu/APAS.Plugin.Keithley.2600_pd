@@ -1,4 +1,4 @@
-﻿namespace APAS.Plugin.KEYTHLEY._2600_PD.Models
+﻿namespace APAS.Plugin.KEYTHLEY.SMU2600.Models
 {
     internal class MonitorReporter
     {

@@ -1,8 +1,7 @@
-﻿using APAS.Plugin.KEYTHLEY._2600_PD;
+﻿using System.Windows;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Windows;
 
-namespace APAS__Plugin_KEYTHLEY_2600_PDTests
+namespace APAS.Plugin.KEYTHLEY.SMU2600.Tests
 {
     [TestClass()]
     public class PluginDemoTests

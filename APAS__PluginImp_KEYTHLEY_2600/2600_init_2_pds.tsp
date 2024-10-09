@@ -1,6 +1,6 @@
 ﻿# 将2600配置为双路PD电流模式
 # 配置通道A
-smua.reset()
+ccc
 smua.source.func=smua.OUTPUT_DCVOLTS
 display.smua.measure.func=display.MEASURE_DCAMPS
 smua.source.limitv=1.5

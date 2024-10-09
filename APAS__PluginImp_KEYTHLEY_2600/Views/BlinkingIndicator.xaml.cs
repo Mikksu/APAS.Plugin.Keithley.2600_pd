@@ -1,7 +1,7 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Media.Animation;
 
-namespace APAS.Plugin.KEYTHLEY._2600_PD.Views
+namespace APAS.Plugin.KEYTHLEY.SMU2600.Views
 {
     /// <summary>
     /// Interaction logic for BlinkingIndicator.xaml

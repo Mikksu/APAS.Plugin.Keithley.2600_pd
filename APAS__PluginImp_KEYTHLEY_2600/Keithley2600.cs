@@ -2,21 +2,20 @@
 using System.Configuration;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Remoting.Channels;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using APAS.Plugin.KEYTHLEY._2600_PD.Extensions;
-using APAS.Plugin.KEYTHLEY._2600_PD.Models;
-using APAS.Plugin.KEYTHLEY._2600_PD.Views;
+using APAS.Plugin.KEYTHLEY.SMU2600.Extensions;
+using APAS.Plugin.KEYTHLEY.SMU2600.Models;
+using APAS.Plugin.KEYTHLEY.SMU2600.Views;
 using APAS.Plugin.Sdk.Base;
 using APAS.ServiceContract.Wcf;
 using NationalInstruments.NI4882;
-using Reporter = (APAS.Plugin.KEYTHLEY._2600_PD.Models.MonitorReporter a, APAS.Plugin.KEYTHLEY._2600_PD.Models.MonitorReporter b);
+using Reporter = (APAS.Plugin.KEYTHLEY.SMU2600.Models.MonitorReporter a, APAS.Plugin.KEYTHLEY.SMU2600.Models.MonitorReporter b);
 
-namespace APAS.Plugin.KEYTHLEY._2600_PD
+namespace APAS.Plugin.KEYTHLEY.SMU2600
 {
     /// <inheritdoc />
     public class Keithley2600 : PluginMultiChannelMeasurableEquipment

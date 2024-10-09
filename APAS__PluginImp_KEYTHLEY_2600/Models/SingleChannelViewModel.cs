@@ -1,7 +1,6 @@
-﻿using System.Windows.Input;
-using APAS.CoreLib.Base;
+﻿using APAS.CoreLib.Base;
 
-namespace APAS.Plugin.KEYTHLEY._2600_PD.Models
+namespace APAS.Plugin.KEYTHLEY.SMU2600.Models
 {
     public class SingleChannelViewModel : BindableBase
     {

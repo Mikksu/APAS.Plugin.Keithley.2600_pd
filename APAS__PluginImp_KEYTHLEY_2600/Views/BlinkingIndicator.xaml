@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="APAS.Plugin.KEYTHLEY._2600_PD.Views.BlinkingIndicator"
+﻿<UserControl x:Class="APAS.Plugin.KEYTHLEY.SMU2600.Views.BlinkingIndicator"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
