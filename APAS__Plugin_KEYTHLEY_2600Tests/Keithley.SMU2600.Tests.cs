@@ -9,13 +9,14 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600.Tests
         [TestMethod()]
         public void InitTest()
         {
-            var plugin = new Keithley2600(null, "Keithley 2600");
-
+            var plugin = new Keithley2600(null, "SMU2600");
+            plugin.Init();
             var win = new Window
             {
                 Content = plugin.UserView,
                 SizeToContent = SizeToContent.WidthAndHeight
             };
+            win.ShowInTaskbar = true;
             win.ShowDialog();
         }
     }

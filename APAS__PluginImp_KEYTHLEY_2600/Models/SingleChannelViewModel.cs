@@ -4,10 +4,33 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600.Models
 {
     public class SingleChannelViewModel : BindableBase
     {
+
         #region properties
 
+        private SourceModeEnum _mode = SourceModeEnum.ISource;
 
-        private VoltUnitEnum _voltUnitSelected;
+        /// <summary>
+        /// 返回源输出模式。
+        /// </summary>
+        public SourceModeEnum SourceMode
+        {
+            get => _mode;
+            internal set => SetProperty(ref _mode, value);
+        }
+
+        private bool _isON;
+
+        /// <summary>
+        /// 返回当前通道输出状态。
+        /// </summary>
+        public bool IsON
+        {
+            get => _isON;
+            internal set => SetProperty(ref _isON, value);
+        }
+
+
+        private VoltUnitEnum _voltUnitSelected = VoltUnitEnum.V;
 
         /// <summary>
         /// 设置或返回电压单位。
@@ -18,7 +41,7 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600.Models
             set => SetProperty(ref _voltUnitSelected, value);
         }
 
-        private CurrentUnitEnum _currUnitSelected;
+        private CurrentUnitEnum _currUnitSelected = CurrentUnitEnum.A;
 
         /// <summary>
         /// 设置或返回电流单位。

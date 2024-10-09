@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Runtime.Remoting.Proxies;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -9,10 +11,10 @@ using System.Threading.Tasks;
 using System.Windows;
 using APAS.Plugin.KEYTHLEY.SMU2600.Extensions;
 using APAS.Plugin.KEYTHLEY.SMU2600.Models;
+using APAS.Plugin.KEYTHLEY.SMU2600.Ports;
 using APAS.Plugin.KEYTHLEY.SMU2600.Views;
 using APAS.Plugin.Sdk.Base;
 using APAS.ServiceContract.Wcf;
-using NationalInstruments.NI4882;
 using Reporter = (APAS.Plugin.KEYTHLEY.SMU2600.Models.MonitorReporter a, APAS.Plugin.KEYTHLEY.SMU2600.Models.MonitorReporter b);
 
 namespace APAS.Plugin.KEYTHLEY.SMU2600
@@ -29,9 +31,7 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
         private const string PATTEN_CONTROL_PARAM_ON = @"^ON ([AB]|ALL)$";
         private const string PATTEN_CONTROL_PARAM_OFF = @"^OFF ([AB]|ALL)$"; 
 
-        private const string CFG_NAME_GPIB_ADR = "GPIB_ADR";
-        
-        private Device _gpib;
+        private IPort _commPort;
 
         /// <summary>
         /// how long it takes to wait between the two sampling points.
@@ -44,8 +44,6 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
         private bool _isInit;
         private readonly Configuration _config;
         private readonly IProgress<Reporter> _rtValuesUpdatedReporter;
-        private readonly int _gpibAdr;
-        private double _pdCurrentA, _pdCurrentB;
 
         #endregion
 
@@ -60,14 +58,22 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
             _config = GetAppConfig();
 
             LoadConfigItem(_config, "ReadIntervalMillisec", out _pollingIntervalMs, 200);
-            LoadConfigItem(_config, CFG_NAME_GPIB_ADR, out _gpibAdr, 26);
 
             #endregion
 
-            ChannelA = new SingleChannelViewModel();
-            ChannelB = new SingleChannelViewModel();
+            ChannelA = new SingleChannelViewModel
+            {
+                TurnOnCommand = new RelayCommand(_=>Output("A", true)),
+                TurnOffCommand = new RelayCommand(_ => Output("A", false)),
+            };
 
-            UserView = new Keithley2600View()
+            ChannelB = new SingleChannelViewModel
+            {
+                TurnOnCommand = new RelayCommand(_ => Output("B", true)),
+                TurnOffCommand = new RelayCommand(_ => Output("B", false)),
+            };
+
+            UserView = new SMU2600View()
             {
                 DataContext = this
             };
@@ -78,10 +84,18 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
             //! we operate the UI elements in the OnCommOneShot event.
             _rtValuesUpdatedReporter = new Progress<Reporter>(reporter =>
             {
+                ChannelA.SourceMode = reporter.a.Mode;
+                ChannelB.SourceMode = reporter.b.Mode;
+                ChannelA.IsON = reporter.a.IsON;
+                ChannelB.IsON = reporter.b.IsON;
                 ChannelA.MeasuredA = reporter.a.MeasureA;
-                ChannelA.MeasuredV = reporter.a.MeasureV;
                 ChannelB.MeasuredA = reporter.b.MeasureA;
+                ChannelA.MeasuredV = reporter.a.MeasureV;
                 ChannelB.MeasuredV = reporter.b.MeasureV;
+                ChannelA.SourceALevel = reporter.a.SourceI;
+                ChannelB.SourceALevel = reporter.b.SourceI;
+                ChannelA.SourceVLevel = reporter.a.SourceV;
+                ChannelB.SourceVLevel = reporter.b.SourceV;
             });
         }
 
@@ -89,7 +103,7 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
 
         #region Properties
 
-        public override string ShortCaption => "K2600";
+        public override string ShortCaption => "SMU2600";
 
         public override string Description => "吉时立2600系列SMU控制插件";
 
@@ -122,7 +136,7 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
         public sealed override async Task Control(string param)
         {
             if (!IsInitialized)
-                throw new InvalidOperationException("KEITHLEY 2600未初始化。");
+                throw new InvalidOperationException("SMU2600未初始化。");
 
             if (Regex.IsMatch(param, PATTEN_CONTROL_PARAM_ON)) // "ON"
             {
@@ -131,16 +145,16 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
                 {
                     if (m.Groups[1].Value == "A") // ON A
                     {
-                        SendCommand("smua.source.output=1");
+                        Output("A", true);
                     }
                     else if (m.Groups[1].Value == "B") // ON B
                     {
-                        SendCommand("smub.source.output=1");
+                        Output("B", true);
                     }
                     else if (m.Groups[1].Value == "ALL") // ON ALL
                     {
-                        SendCommand("smua.source.output=1");
-                        SendCommand("smub.source.output=1");
+                        Output("A", true);
+                        Output("B", true);
                     }
                     else
                         goto __param_err;
@@ -157,16 +171,16 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
                 {
                     if (m.Groups[1].Value == "A") // OFF A
                     {
-                        SendCommand("smua.source.output=0");
+                       Output("A", false);
                     }
                     else if (m.Groups[1].Value == "B") // OFF B
                     {
-                        SendCommand("smub.source.output=0");
+                        Output("B", false);
                     }
                     else if (m.Groups[1].Value == "ALL") // OFF ALL
                     {
-                        SendCommand("smua.source.output=0");
-                        SendCommand("smub.source.output=0");
+                        Output("A", false);
+                        Output("B", false);
                     }
                     else
                         goto __param_err;
@@ -235,18 +249,29 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
         {
             var smu = $"smu{channel}";
             var reporter = new MonitorReporter();
+
+            // 查询输出模式
             var func = Query<string>($"print({smu}.source.func)");
-            reporter.Mode = func.Contains("0") ? SourceModeEnum.ASource : SourceModeEnum.VSource;
+            if(double.TryParse(func, out var numMode))
+                reporter.Mode = (int)numMode == 0 ? SourceModeEnum.ISource : SourceModeEnum.VSource;
+
+            // 查询电压、电流测量值
             var ret = Query<string>($"print({smu}.measure.iv())");
-            var iv = ret.Split(',');
+            var iv = ret.Split('\t');
             if (double.TryParse(iv[0], out var curr) && double.TryParse(iv[1], out var volt))
             {
                 reporter.MeasureA = curr;
                 reporter.MeasureV = volt;
             }
 
-            reporter.SourceA = Query<double>($"print({smu}.source.leveli())");
-            reporter.SourceV = Query<double>($"print({smu}.source.levelv())");
+            // 查询电压和电流设置值。
+            reporter.SourceI = Query<double>($"print({smu}.source.leveli)");
+            reporter.SourceV = Query<double>($"print({smu}.source.levelv)");
+
+            // 查询输出状态
+            ret = Query<string>($"print({smu}.source.output)");
+            if (double.TryParse(ret, out var output))
+                reporter.IsON = (int)output == 1;
             return reporter;
 
         }
@@ -337,20 +362,67 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
 
         #region Private Methods
 
-        private void Init2600()
+        /// <summary>
+        /// 初始化通讯端口。
+        /// </summary>
+        private void InitCommPort()
         {
-            lock (_locker)
+            LoadConfigItem(_config, "PortType", out var strPortType, PortTypeEnum.Serial.ToString());
+            var portType = PortFactory.ConvertToPortType(strPortType);
+            if (portType == null)
+                throw new InvalidCastException($"端口类型定义错误，请检查PortType设置项。");
+
+            switch (portType)
             {
-                _gpib = new Device(0, new Address((byte)_gpibAdr));
+                case PortTypeEnum.Serial:
+                    LoadConfigItem(_config, "PortName", out var portName, "COM1");
+                    LoadConfigItem(_config, "BaudRate", out var baudRate, 9600);
+                    lock (_locker)
+                    {
+                        _commPort = PortFactory.CreateSerialPort(portName, baudRate);
+                    }
+                    
+                    break;
+
+                case PortTypeEnum.GPIB:
+                    LoadConfigItem(_config, "GPIBAddr", out var gpibAddr, 1);
+                    lock (_locker)
+                    {
+                        _commPort = PortFactory.CreateGPIBPort(0, (byte)gpibAddr);
+                    }
+                    break;
             }
 
+            _commPort?.Open();
+        }
+
+        private void Init2600()
+        {
+
+            InitCommPort();
+
             var ret = Query<string>("*IDN?");
-            if (ret.Contains("2602B") == false)
-                throw new Exception($"位于地址GPIB{_gpibAdr}的设备非KEITHLEY 2602B。");
+            if (!ret.Contains("2602") && !ret.Contains("2612"))
+                throw new Exception($"连接到端口{_commPort}的设备不是Keithley SMU2600。");
 
             var config = GetAppConfig();
             LoadConfigItem(config, "InitTspFile", out var initTspFileName, "");
             RunTspFile(initTspFileName);
+        }
+
+        /// <summary>
+        /// 打开或关闭输出。
+        /// </summary>
+        /// <param name="channel"></param>
+        /// <param name="isON"></param>
+        private void Output(string channel, bool isON)
+        {
+            if (channel != "A" && channel != "B")
+                throw new ArgumentException("通道参数错误，请使用字母A或B。", nameof(channel));
+
+            SendCommand(isON 
+                ? $"smu{channel.ToLower()}.source.output=1" 
+                : $"smu{channel.ToLower()}.source.output=0");
         }
 
         private void RunTspFile(string filename)
@@ -396,7 +468,7 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
             {
                 try
                 {
-                    _gpib.Write(string.Concat(cmd, "\r\n"));
+                    _commPort.Write(string.Concat(cmd, "\r\n"));
                 }
                 catch (NullReferenceException)
                 {
@@ -411,12 +483,11 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
         {
             lock (_locker)
             {
-                _gpib.Write(cmd);
-                var ret = _gpib.ReadString();
+                _commPort.Write(cmd);
+                var ret = _commPort.ReadAscii();
                 return ret.ConvertTo<T>();
             }
         }
-
 
         private void _startBackgroundTask(IProgress<Reporter> progress = null)
         {
@@ -486,9 +557,12 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
                     try
                     {
                         _stopBackgroundTask();
-
-                        _gpib?.Dispose();
-
+                        lock (_locker)
+                        {
+                            _commPort.Close();
+                            _commPort?.Dispose();
+                        }
+                        
                         Init();
                     }
                     catch (Exception ex)
@@ -528,40 +602,6 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
                     catch (Exception ex)
                     {
                         MessageBox.Show($"无法打开输出，{ex.Message}", "错误",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                });
-            }
-        }
-
-        /// <summary>
-        /// 关闭输出
-        /// </summary>
-        public RelayCommand OutputOffCommand
-        {
-            get
-            {
-                return new RelayCommand(ch =>
-                {
-                    try
-                    {
-                        Control($"OFF {ch}").Wait();
-                    }
-                    catch (AggregateException ex)
-                    {
-                        var errMsg = new StringBuilder();
-                        ex.Flatten().Handle(e =>
-                        {
-                            errMsg.AppendLine(e.Message);
-                            return true;
-                        });
-
-                        MessageBox.Show($"无法关闭输出，{errMsg}", "错误",
-                            MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"无法关闭输出，{ex.Message}", "错误",
                             MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 });

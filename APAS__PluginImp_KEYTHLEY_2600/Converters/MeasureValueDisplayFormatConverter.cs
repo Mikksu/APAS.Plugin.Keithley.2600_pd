@@ -17,13 +17,15 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600.Converters
             var output = 0.0d;
             if (values[1] is VoltUnitEnum unitV)
             {
-                output = val * (int)unitV;
-                output = Math.Round(output, GetNumberDigits((int)unitV) + 1);
+                // 先转为nV，再转为指定单位
+                output = val * 1e9 / (double)unitV;
+                output = Math.Round(output, GetNumberDigits((int)unitV) + 2);
             }
             else if (values[1] is CurrentUnitEnum unitA)
             {
-                output = val * (int)unitA;
-                output = Math.Round(output, GetNumberDigits((int)unitA) + 1);
+                // 先转为nA，再转为指定单位
+                output = val * 1e9 / (int)unitA;
+                output = Math.Round(output, GetNumberDigits((int)unitA) + 2);
             }
             else
             {

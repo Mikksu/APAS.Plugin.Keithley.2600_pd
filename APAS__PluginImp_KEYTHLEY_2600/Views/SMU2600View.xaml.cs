@@ -2,9 +2,9 @@
 
 namespace APAS.Plugin.KEYTHLEY.SMU2600.Views
 {
-    public partial class Keithley2600View : UserControl
+    public partial class SMU2600View : UserControl
     {
-        public Keithley2600View()
+        public SMU2600View()
         {
             InitializeComponent();
         }

@@ -53,6 +53,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\APAS__PluginImp_KEYTHLEY_2600\bin\Debug\APAS.ServiceContract.dll</HintPath>
     </Reference>
+    <Reference Include="log4net, Version=1.2.10.0, Culture=neutral, PublicKeyToken=692fbea5521e1304, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\APAS__PluginImp_KEYTHLEY_2600\Dependencies\log4net.dll</HintPath>
+    </Reference>
     <Reference Include="MathNet.Numerics, Version=4.15.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.15.0\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
@@ -78,7 +82,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
-    <Compile Include="PluginDemoTests.cs" />
+    <Compile Include="Keithley.SMU2600.Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

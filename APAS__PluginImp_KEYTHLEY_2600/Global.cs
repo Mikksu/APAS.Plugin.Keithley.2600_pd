@@ -2,23 +2,30 @@
 {
     public enum VoltUnitEnum
     {
-       V = 1,
-       mV = 1000,
-       uV = 1000000,
-       nV = 1000000000
+       V = 1000000000,
+       mV = 1000000,
+       uV = 1000,
+       nV = 1,
     }
 
     public enum CurrentUnitEnum
     {
-        A = 1,
-        mA = 1000,
-        uA = 1000000,
-        nA = 1000000000
+        A = 1000000000,
+        mA = 1000000,
+        uA = 1000,
+        nA = 1
     }
 
     public enum SourceModeEnum
     {
-        VSource,
-        ASource
+        /// <summary>
+        /// 电流源模式
+        /// </summary>
+        ISource,
+
+        /// <summary>
+        /// 电压源模式
+        /// </summary>
+        VSource
     }
 }

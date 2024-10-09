@@ -4,14 +4,16 @@
     {
         public MonitorReporter(
             SourceModeEnum mode,
+            bool isON,
             double sourceV,
-            double sourceA,
+            double sourceI,
             double measureV,
             double measureA)
         {
             Mode = mode;
+            IsON = isON;
             SourceV = sourceV;
-            SourceA = sourceA;
+            SourceI = sourceI;
             MeasureV = measureV;
             MeasureA = measureA;
         }
@@ -23,9 +25,11 @@
 
         internal SourceModeEnum Mode { get; set; }
 
+        internal bool IsON { get; set; }
+
         internal double SourceV { get; set; }
 
-        internal double SourceA{ get; set; }
+        internal double SourceI{ get; set; }
 
         internal double MeasureV { get; set; }
 

@@ -71,17 +71,26 @@
   <ItemGroup>
     <Compile Include="Converters\MeasureValueDisplayFormatConverter.cs" />
     <Compile Include="Converters\ReverseBoolConverter.cs" />
+    <Compile Include="Converters\SourceModeToBoolConverter.cs" />
+    <Compile Include="Converters\SourceOutputToBoolConverter.cs" />
+    <Compile Include="Converters\SourceOutputToGroupBoxColorConverter.cs" />
     <Compile Include="Extensions\GenericTypeConverter.cs" />
     <Compile Include="Global.cs" />
     <Compile Include="Keithley2600.cs" />
     <Compile Include="Models\MonitorReporter.cs" />
     <Compile Include="Models\SingleChannelViewModel.cs" />
+    <Compile Include="Ports\IPort.cs" />
+    <Compile Include="Ports\PortBase{T}.cs" />
+    <Compile Include="Ports\PortFactory.cs" />
+    <Compile Include="Ports\PortGPIB.cs" />
+    <Compile Include="Ports\PortSerial.cs" />
+    <Compile Include="Ports\PortTypeEnum.cs" />
     <Compile Include="RelayCommand.cs" />
     <Compile Include="Views\SingleChannelControl.xaml.cs">
       <DependentUpon>SingleChannelControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Views\Keithley2600View.xaml.cs">
-      <DependentUpon>Keithley2600View.xaml</DependentUpon>
+    <Compile Include="Views\SMU2600View.xaml.cs">
+      <DependentUpon>SMU2600View.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\BlinkingIndicator.xaml.cs">
       <DependentUpon>BlinkingIndicator.xaml</DependentUpon>
@@ -103,15 +112,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Views\Keithley2600View.xaml">
+    <Page Include="Views\SMU2600View.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
     <None Include="2600_init_2_pds.tsp">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="Dependencies\log4net.dll" />
     <Content Include="Dependencies\NationalInstruments.Common.dll" />
     <Content Include="Dependencies\NationalInstruments.NI4882.dll" />
     <Resource Include="Resources\keithley_logo.png" />
