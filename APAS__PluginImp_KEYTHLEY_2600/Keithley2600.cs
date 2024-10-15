@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Configuration;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Runtime.Remoting.Proxies;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -51,7 +49,7 @@ namespace APAS.Plugin.KEYTHLEY.SMU2600
 
         public Keithley2600(ISystemService apasService, string caption) 
             : base(Assembly.GetExecutingAssembly(), apasService, caption, 4, 
-                new []{"MeasV_A", "MeasI_A", "MeasV_B", "MeasI_B" })
+                new []{"A.MeasV", "A.MeasI", "B.MeasV", "B.MeasI" })
         {
             #region Configuration Reading
 

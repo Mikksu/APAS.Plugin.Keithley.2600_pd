@@ -43,17 +43,15 @@
             <Setter Property="Margin" Value="0 0 10 0"/>
         </Style>
 
-        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Style TargetType="Button">
             <Setter Property="Margin" Value="5"/>
         </Style>
 
-        <Style x:Key="ValueDisplayStyle" TargetType="TextBox" 
-               BasedOn="{StaticResource {x:Type TextBox}}">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Style x:Key="ValueDisplayStyle" TargetType="TextBox">
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="IsReadOnly" Value="True"/>
-            <Setter Property="Margin" Value="5,3"/>
+            <Setter Property="Margin" Value="0 2"/>
         </Style>
 
         <Style x:Key="ValueSetStyle" TargetType="TextBox" 
@@ -61,17 +59,12 @@
  
         </Style>
 
-        <Style x:Key="UnitSelectionStyle" TargetType="ComboBox" 
-               BasedOn="{StaticResource {x:Type ComboBox}}">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="5,3"/>
+        <Style x:Key="UnitSelectionStyle" TargetType="ComboBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0 2"/>
         </Style>
 
-        <Style x:Key="SourceModeSelectionStyle" TargetType="RadioButton"
-            BasedOn="{StaticResource {x:Type RadioButton}}">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
+        <Style x:Key="SourceModeSelectionStyle" TargetType="RadioButton">
             <Setter Property="Margin" Value="5 0"/>
             <Setter Property="IsHitTestVisible" Value="False"/>
         </Style>
@@ -93,7 +86,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="1*"/>
-                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="50"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="电压"
@@ -111,6 +104,7 @@
                 <ComboBox Grid.Row="1" Grid.Column="2" 
                       ItemsSource="{Binding Source={StaticResource VoltUnitEnum}}"
                       SelectedItem="{Binding VoltUnitSelected}"
+                      d:SelectedIndex="0"
                       Style="{StaticResource UnitSelectionStyle}"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="电流"
@@ -128,6 +122,7 @@
                 <ComboBox Grid.Row="2" Grid.Column="2" 
                       ItemsSource="{Binding Source={StaticResource CurrUnitEnum}}"
                       SelectedItem="{Binding CurrentUnitSelected}"
+                      d:SelectedIndex="0"
                       Style="{StaticResource UnitSelectionStyle}"/>
             </Grid>
         </GroupBox>
@@ -149,7 +144,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="40"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="60"/>
+                    <ColumnDefinition Width="50"/>
                 </Grid.ColumnDefinitions>
 
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="模式"
